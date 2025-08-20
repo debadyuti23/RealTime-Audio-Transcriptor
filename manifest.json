@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "RealTime Audio Transcriptor",
+  "version": "0.1.0",
+  "description": "Capture active tab audio using Gemini Live.",
+  "permissions": ["tabCapture", "activeTab", "sidePanel", "storage"],
+  "host_permissions": ["*://*/*"],
+  "background": { "service_worker": "sw.js" },
+  "side_panel": { "default_path": "sidepanel.html" },
+  "action": { "default_title": "Transcriber" }
+}

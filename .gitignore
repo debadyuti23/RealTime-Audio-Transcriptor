@@ -1,0 +1,12 @@
+#ignore repo-specific files
+.vscode/
+.idea/
+
+#ignore node_modules
+node_modules/
+
+#ignore env
+.env
+
+#ignore package-lock.json
+package-lock.json
