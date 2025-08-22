@@ -31,7 +31,7 @@ Before running this application, ensure you have:
 
 ### 1. Clone/Download Repository
 ```bash
-git clone <repository-url>
+git clone https://github.com/debadyuti23/RealTime-Audio-Transcriptor.git
 cd RealTime-Audio-Transcriptor
 ```
 
