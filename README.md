@@ -6,6 +6,8 @@ A Chrome extension that captures audio from browser tabs and provides real-time 
 
 - **Real-time transcription** of tab audio using Deepgram's Nova-2 model
 - **Live streaming** with interim results for instant feedback
+- **Session timer** with pause/resume functionality for meeting duration tracking
+- **Recording controls** - Start, pause/resume, and stop with clear visual states
 - **Export functionality** - Copy to clipboard or download as Text/JSON/CSV
 - **Clean sidepanel interface** with recording controls and status indicators
 - **Relative timestamps** for easy navigation
@@ -77,19 +79,22 @@ WebSocket server running on port 3004
 
 1. **Navigate to any webpage** with audio content (YouTube, news sites, etc.)
 2. **Click the extension icon** in the Chrome toolbar (or pin it for easy access)
-3. The **sidepanel will open** on the right side
-4. Click **"Start Recording"** to begin transcription
+3. The **sidepanel will open** on the right side showing connection status and session timer
+4. Click **"Start Recording"** to begin transcription - the timer will start automatically
 5. **Audio from the current tab** will be transcribed in real-time
-6. Click **"Stop Recording"** when done
-7. Use **export options** to save your transcript
+6. Use **"Pause"** to temporarily stop recording (timer pauses) and **"Resume"** to continue
+7. Click **"Stop Recording"** when done - timer resets to 00:00:00
+8. Use **export options** to save your transcript with session duration metadata
 
 ## Usage Tips
 
 - **Audio Source**: Only captures audio from the **active tab**
+- **Session Timer**: Displays in HH:MM:SS format, automatically starts with recording
+- **Pause/Resume**: Use to take breaks during long sessions - timer pauses accordingly
 - **Permissions**: Grant microphone/tab capture permissions when prompted
 - **Connection**: Ensure stable internet for best transcription quality
 - **Export**: Use Ctrl+C (or Cmd+C) to quickly copy transcript
-- **Status**: Check connection status in the sidepanel header
+- **Status**: Check connection status and session duration in the sidepanel header
 
 ## Troubleshooting
 
@@ -130,8 +135,24 @@ If you encounter persistent issues:
 - **Frontend**: Chrome Extension (Manifest V3)
 - **Backend**: Node.js WebSocket server
 - **API**: Deepgram Live Streaming API Model Nova-2 Free Tier
-- **Audio**: WebM format, real-time streaming
+- **Audio**: WebM format, real-time streaming with pause/resume support
+- **Timer**: JavaScript-based session duration tracking with pause functionality
+- **Styling**: Modular CSS architecture with external stylesheets
 - **Permissions**: `tabCapture`, `activeTab`, `sidePanel`, `storage`
+
+### Project Structure
+```
+RealTime-Audio-Transcriptor/
+├── .env                    # Environment variables
+├── package.json           # Dependencies and scripts
+├── server.js              # WebSocket server
+├── manifest.json          # Chrome extension manifest
+├── service-worker.js      # Background service worker
+├── sidepanel.html         # Extension UI structure
+├── sidepanel.css          # Extension UI styles
+├── sidepanel.js           # Extension UI logic
+└── icons/                 # Extension icons
+```
 
 ## License
 

@@ -1,5 +1,5 @@
 // Side Panel Script for Real-time Transcription
-console.log('Side Panel loaded');
+
 
 let mediaRecorder = null;
 let audioContext = null;
@@ -8,8 +8,17 @@ let isRecording = false;
 let transcriptionContainer = null;
 let statusElement = null;
 let startButton = null;
+let pauseButton = null;
 let stopButton = null;
 let connectionStatus = 'disconnected';
+
+// Timer functionality
+let timerElement = null;
+let sessionStartTime = null;
+let pausedDuration = 0;
+let pauseStartTime = null;
+let timerInterval = null;
+let isPaused = false;
 
 // Export and transcript management
 let transcriptData = [];
@@ -26,19 +35,22 @@ document.addEventListener('DOMContentLoaded', () => {
   transcriptionContainer = document.getElementById('transcription');
   statusElement = document.getElementById('status');
   startButton = document.getElementById('startBtn');
+  pauseButton = document.getElementById('pauseBtn');
   stopButton = document.getElementById('stopBtn');
+  timerElement = document.getElementById('sessionTimer');
   clearButton = document.getElementById('clearBtn');
   copyButton = document.getElementById('copyBtn');
   exportButton = document.getElementById('exportBtn');
   exportMenu = document.querySelector('.export-menu');
 
-  if (!transcriptionContainer || !statusElement || !startButton || !stopButton) {
+  if (!transcriptionContainer || !statusElement || !startButton || !pauseButton || !stopButton || !timerElement) {
     console.error('Required UI elements not found');
     return;
   }
 
   // Set up event listeners
   startButton.addEventListener('click', startRecording);
+  pauseButton.addEventListener('click', togglePause);
   stopButton.addEventListener('click', stopRecording);
   clearButton.addEventListener('click', clearTranscript);
   copyButton.addEventListener('click', copyTranscript);
@@ -92,7 +104,7 @@ document.addEventListener('keydown', (event) => {
 // Connect to service worker and check status
 async function connectToServiceWorker() {
   try {
-    console.log('Connecting to server...');
+
 
     // Check initial status
     const response = await chrome.runtime.sendMessage({ type: 'GET_STATUS' });
@@ -110,6 +122,64 @@ async function connectToServiceWorker() {
     console.error('Failed to connect to service worker:', error.message);
     updateStatus('Failed to connect to service worker');
   }
+}
+
+// Timer functions
+function startTimer() {
+  sessionStartTime = Date.now();
+  pausedDuration = 0;
+  isPaused = false;
+  timerElement.classList.remove('paused');
+
+  timerInterval = setInterval(updateTimerDisplay, 1000);
+  updateTimerDisplay();
+}
+
+function pauseTimer() {
+  if (!isPaused) {
+    pauseStartTime = Date.now();
+    isPaused = true;
+    timerElement.classList.add('paused');
+    clearInterval(timerInterval);
+  }
+}
+
+function resumeTimer() {
+  if (isPaused) {
+    pausedDuration += Date.now() - pauseStartTime;
+    isPaused = false;
+    timerElement.classList.remove('paused');
+    timerInterval = setInterval(updateTimerDisplay, 1000);
+    updateTimerDisplay();
+  }
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+  sessionStartTime = null;
+  pausedDuration = 0;
+  isPaused = false;
+  timerElement.classList.remove('paused');
+  timerElement.textContent = '00:00:00';
+}
+
+function updateTimerDisplay() {
+  if (!sessionStartTime) {
+    return;
+  }
+
+  let elapsed = Date.now() - sessionStartTime - pausedDuration;
+  if (isPaused) {
+    elapsed = pauseStartTime - sessionStartTime - pausedDuration;
+  }
+
+  const hours = Math.floor(elapsed / 3600000);
+  const minutes = Math.floor((elapsed % 3600000) / 60000);
+  const seconds = Math.floor((elapsed % 60000) / 1000);
+
+  timerElement.textContent =
+    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:` +
+    `${seconds.toString().padStart(2, '0')}`;
 }
 
 // Listen for messages from service worker
@@ -150,11 +220,38 @@ chrome.runtime.onMessage.addListener((message) => {
 
   case 'SESSION_STOPPED':
     isRecording = false;
+    isPaused = false;
+    stopTimer();
     updateStatus('Recording stopped');
     updateUI();
     break;
   }
 });
+
+// Pause/Resume toggle function
+function togglePause() {
+  if (!isRecording) {
+    return;
+  }
+
+  if (isPaused) {
+    // Resume recording
+    if (mediaRecorder && mediaRecorder.state === 'paused') {
+      mediaRecorder.resume();
+    }
+    resumeTimer();
+    pauseButton.textContent = 'Pause';
+    updateStatus('Recording resumed');
+  } else {
+    // Pause recording
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+      mediaRecorder.pause();
+    }
+    pauseTimer();
+    pauseButton.textContent = 'Resume';
+    updateStatus('Recording paused');
+  }
+}
 
 // Start recording
 async function startRecording() {
@@ -175,7 +272,7 @@ async function startRecording() {
   cleanupAudioResources();
 
   try {
-    console.log('🎙️ Starting recording...');
+    console.log('Starting recording');
     updateStatus('Starting recording...');
 
     // Get tab audio using callback-based API
@@ -241,8 +338,6 @@ async function startRecording() {
             const dataUrl = reader.result;
             const base64Audio = dataUrl.split(',')[1];
 
-            console.log(`📤 Sending audio chunk to SW: ${base64Audio.length} chars (${mimeType})`);
-
             chrome.runtime.sendMessage({
               type: 'AUDIO_CHUNK',
               audio: base64Audio,
@@ -262,17 +357,18 @@ async function startRecording() {
     });
 
     mediaRecorder.addEventListener('start', () => {
-
       isRecording = true;
       recordingStartTime = Date.now(); // Set recording start time
+      startTimer(); // Start session timer
       updateUI();
       updateStatus('Recording... Listening for speech');
       addTranscription('[Recording started]', true);
     });
 
     mediaRecorder.addEventListener('stop', () => {
-
       isRecording = false;
+      isPaused = false;
+      stopTimer(); // Stop session timer
       updateUI();
 
       // Clean up audio resources
@@ -308,7 +404,7 @@ async function startRecording() {
 // Stop recording
 async function stopRecording() {
   try {
-    console.log('⏹️ Stopping recording...');
+    console.log('Stopping recording');
 
     // Stop MediaRecorder first
     if (mediaRecorder && mediaRecorder.state !== 'inactive') {
@@ -335,13 +431,13 @@ async function stopRecording() {
 
 // Clean up all audio resources
 function cleanupAudioResources() {
-  console.log('🧹 Cleaning up audio resources...');
+
 
   try {
     // Stop all tracks in the audio stream
     if (audioStream) {
       audioStream.getTracks().forEach(track => {
-        console.log(`🛑 Stopping track: ${track.kind} (${track.label})`);
+
         track.stop();
       });
       audioStream = null;
@@ -350,9 +446,9 @@ function cleanupAudioResources() {
     // Close audio context
     if (audioContext && audioContext.state !== 'closed') {
       audioContext.close().then(() => {
-        console.log('🔇 AudioContext closed successfully');
+
       }).catch(err => {
-        console.warn('⚠️ Error closing AudioContext:', err);
+        console.warn('Error closing AudioContext:', err.message);
       });
       audioContext = null;
     }
@@ -567,7 +663,7 @@ function exportTranscript(format) {
   updateStatus(`Exported ${transcriptData.length} entries as ${format.toUpperCase()}`);
   exportMenu.classList.remove('show');
 
-  console.log(`📁 Exported transcript as ${format}: ${filename}`);
+
 }
 
 // Update status display
@@ -580,22 +676,25 @@ function updateStatus(message) {
 
 // Update UI based on current state
 function updateUI() {
-  if (!startButton || !stopButton || !clearButton || !copyButton || !exportButton) {
+  if (!startButton || !pauseButton || !stopButton || !clearButton || !copyButton || !exportButton) {
     return;
   }
 
   const canStart = connectionStatus === 'connected' && !isRecording;
+  const canPause = isRecording;
   const canStop = isRecording;
   const hasTranscript = transcriptData.length > 0;
 
   startButton.disabled = !canStart;
+  pauseButton.disabled = !canPause;
   stopButton.disabled = !canStop;
   clearButton.disabled = !hasTranscript;
   copyButton.disabled = !hasTranscript;
   exportButton.disabled = !hasTranscript;
 
   startButton.textContent = canStart ? 'Start Recording' : 'Not Ready';
+  pauseButton.textContent = isPaused ? 'Resume' : 'Pause';
   stopButton.textContent = 'Stop Recording';
-  copyButton.textContent = hasTranscript ? `📋 Copy (${transcriptData.length})` : '📋 Copy';
-  exportButton.textContent = hasTranscript ? `Export ⬇️ (${transcriptData.length})` : 'Export ⬇️';
+  copyButton.textContent = hasTranscript ? `Copy (${transcriptData.length})` : 'Copy';
+  exportButton.textContent = hasTranscript ? `Export (${transcriptData.length})` : 'Export';
 }
