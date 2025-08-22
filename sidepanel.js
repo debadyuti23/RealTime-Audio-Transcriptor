@@ -211,7 +211,6 @@ chrome.runtime.onMessage.addListener((message) => {
 
   case 'ERROR':
     updateStatus(`Error: ${message.message}`);
-    addTranscription(`[ERROR] ${message.message}`, true);
     break;
 
   case 'STATUS':
@@ -362,7 +361,6 @@ async function startRecording() {
       startTimer(); // Start session timer
       updateUI();
       updateStatus('Recording... Listening for speech');
-      addTranscription('[Recording started]', true);
     });
 
     mediaRecorder.addEventListener('stop', () => {
@@ -397,7 +395,6 @@ async function startRecording() {
   } catch (error) {
     console.error('Failed to start recording:', error.message);
     updateStatus(`Failed to start recording: ${error.message}`);
-    addTranscription(`[ERROR] ${error.message}`, true);
   }
 }
 
@@ -417,7 +414,6 @@ async function stopRecording() {
     // Clean up audio resources immediately
     cleanupAudioResources();
 
-    addTranscription('[Recording stopped]', true);
     updateStatus('Recording stopped');
 
   } catch (error) {
@@ -499,7 +495,7 @@ function addTranscription(text, isFinal, confidence = null) {
   `;
 
   // Store transcript data for export (only final transcriptions)
-  if (isFinal && text !== '[Recording started]' && text !== '[Recording stopped]') {
+  if (isFinal) {
     transcriptData.push({
       timestamp: relativeTime,
       absoluteTime: new Date().toISOString(),
