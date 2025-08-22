@@ -123,6 +123,26 @@ body {
   background: rgba(255, 255, 255, 0.25);
 }
 
+/* Button Icons */
+.btn-icon {
+  width: 18px;
+  height: 18px;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.btn-icon:only-child {
+  margin-right: 0;
+}
+
+/* Center icons when no text */
+.btn:has(.btn-icon:only-child) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+}
+
 .export-section {
   margin-bottom: 16px;
 }

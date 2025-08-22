@@ -76,7 +76,7 @@ async function createDeepgramConnection(sessionId) {
             const isFinal = data.is_final;
             const confidence = data.channel.alternatives[0].confidence;
 
-            console.log(`${isFinal ? 'Transcription created successfully' : 'Interim transcription received'}`);
+            console.log(`${isFinal ? 'Transcription received successfully' : 'Interim transcription received'}`);
 
             if (isFinal) {
               // Store final transcription
@@ -206,7 +206,7 @@ wss.on('connection', (clientWs) => {
 
       switch (data.type) {
       case 'start_session':
-        console.log(`🎬 Starting Deepgram session: ${sessionId}`);
+        console.log(`Starting transcription session: ${sessionId}`);
 
         try {
           const deepgramLive = await createDeepgramConnection(sessionId);

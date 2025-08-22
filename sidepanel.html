@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Deepgram Real-time Transcription</title>
+  <title>Real-time Transcription</title>
   <link rel="stylesheet" href="sidepanel.css">
 </head>
 <body>
   <div class="header">
-    <h1>🎙️ Deepgram Live</h1>
+    <h1>🎙️ Live Transcription</h1>
     <div class="subtitle">Real-time Audio Transcription</div>
   </div>
 
@@ -26,21 +26,45 @@
   </div>
 
   <div class="controls">
-    <button id="startBtn" class="btn primary">Start Recording</button>
-    <button id="pauseBtn" class="btn secondary" disabled>Pause</button>
-    <button id="stopBtn" class="btn danger" disabled>Stop Recording</button>
+    <button id="startBtn" class="btn primary" title="Start Recording">
+      <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M8 5v14l11-7z"/>
+      </svg>
+    </button>
+    <button id="pauseBtn" class="btn secondary" disabled title="Pause/Resume Recording">
+      <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+      </svg>
+    </button>
+    <button id="stopBtn" class="btn danger" disabled title="Stop Recording">
+      <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M6 6h12v12H6z"/>
+      </svg>
+    </button>
   </div>
 
   <div class="export-section">
     <div class="export-controls">
-      <button id="clearBtn" class="btn secondary">Clear</button>
-      <button id="copyBtn" class="btn secondary">Copy</button>
+      <button id="clearBtn" class="btn secondary" title="Clear all transcriptions">
+        <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+        </svg>
+      </button>
+      <button id="copyBtn" class="btn secondary" title="Copy transcript to clipboard">
+        <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+        </svg>
+      </button>
       <div class="export-dropdown">
-        <button id="exportBtn" class="btn secondary">Export</button>
+        <button id="exportBtn" class="btn secondary" title="Export transcript">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+          </svg>
+        </button>
         <div class="export-menu">
-          <button id="exportTxt" class="export-option">Text</button>
-          <button id="exportJson" class="export-option">JSON</button>
-          <button id="exportCsv" class="export-option">CSV</button>
+          <button id="exportTxt" class="export-option" title="Export as plain text">Text</button>
+          <button id="exportJson" class="export-option" title="Export as JSON">JSON</button>
+          <button id="exportCsv" class="export-option" title="Export as CSV">CSV</button>
         </div>
       </div>
     </div>

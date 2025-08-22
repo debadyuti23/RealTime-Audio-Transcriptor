@@ -44,7 +44,6 @@ document.addEventListener('DOMContentLoaded', () => {
   exportMenu = document.querySelector('.export-menu');
 
   if (!transcriptionContainer || !statusElement || !startButton || !pauseButton || !stopButton || !timerElement) {
-    console.error('Required UI elements not found');
     return;
   }
 
@@ -118,8 +117,7 @@ async function connectToServiceWorker() {
     }
 
     updateUI();
-  } catch (error) {
-    console.error('Failed to connect to service worker:', error.message);
+  } catch (_error) {
     updateStatus('Failed to connect to service worker');
   }
 }
@@ -194,11 +192,11 @@ chrome.runtime.onMessage.addListener((message) => {
     break;
 
   case 'SESSION_STARTED':
-    updateStatus('Deepgram session started');
+    updateStatus('Transcription session started');
     break;
 
   case 'SESSION_READY':
-    updateStatus('Deepgram ready for audio');
+    updateStatus('Ready for audio');
     break;
 
   case 'TRANSCRIPTION':
@@ -239,7 +237,6 @@ function togglePause() {
       mediaRecorder.resume();
     }
     resumeTimer();
-    pauseButton.textContent = 'Pause';
     updateStatus('Recording resumed');
   } else {
     // Pause recording
@@ -247,9 +244,11 @@ function togglePause() {
       mediaRecorder.pause();
     }
     pauseTimer();
-    pauseButton.textContent = 'Resume';
     updateStatus('Recording paused');
   }
+
+  // Update the pause button icon
+  updatePauseButtonIcon();
 }
 
 // Start recording
@@ -271,7 +270,6 @@ async function startRecording() {
   cleanupAudioResources();
 
   try {
-    console.log('Starting recording');
     updateStatus('Starting recording...');
 
     // Get tab audio using callback-based API
@@ -343,11 +341,11 @@ async function startRecording() {
               mimeType: mimeType
             }).then(() => {
 
-            }).catch((error) => {
-              console.error('Failed to send audio chunk to SW:', error.message);
+            }).catch((_error) => {
+              // Silent audio chunk send error
             });
-          } catch (error) {
-            console.error('Error converting audio to base64:', error.message);
+          } catch (_error) {
+          // Silent audio conversion error
           }
         };
         reader.readAsDataURL(event.data); // Use readAsDataURL instead of readAsArrayBuffer
@@ -374,7 +372,6 @@ async function startRecording() {
     });
 
     mediaRecorder.addEventListener('error', (event) => {
-      console.error('MediaRecorder error:', event.error.message);
       updateStatus(`Recording error: ${event.error.message}`);
       stopRecording();
     });
@@ -393,7 +390,6 @@ async function startRecording() {
     mediaRecorder.start(500);
 
   } catch (error) {
-    console.error('Failed to start recording:', error.message);
     updateStatus(`Failed to start recording: ${error.message}`);
   }
 }
@@ -401,7 +397,6 @@ async function startRecording() {
 // Stop recording
 async function stopRecording() {
   try {
-    console.log('Stopping recording');
 
     // Stop MediaRecorder first
     if (mediaRecorder && mediaRecorder.state !== 'inactive') {
@@ -417,7 +412,6 @@ async function stopRecording() {
     updateStatus('Recording stopped');
 
   } catch (error) {
-    console.error('Failed to stop recording:', error.message);
     updateStatus(`Failed to stop recording: ${error.message}`);
 
     // Ensure cleanup even on error
@@ -442,9 +436,9 @@ function cleanupAudioResources() {
     // Close audio context
     if (audioContext && audioContext.state !== 'closed') {
       audioContext.close().then(() => {
-
-      }).catch(err => {
-        console.warn('Error closing AudioContext:', err.message);
+        // AudioContext closed successfully
+      }).catch(_err => {
+        // Silent AudioContext close error
       });
       audioContext = null;
     }
@@ -461,7 +455,7 @@ function cleanupAudioResources() {
 
 
   } catch (error) {
-    console.error('Error during cleanup:', error.message);
+    // Silent cleanup error
   }
 }
 
@@ -564,7 +558,6 @@ async function copyTranscript() {
 
 
   } catch (error) {
-    console.error('Failed to copy transcript:', error.message);
 
     // Fallback for older browsers or if clipboard API fails
     try {
@@ -585,7 +578,6 @@ async function copyTranscript() {
         updateStatus('Failed to copy transcript to clipboard');
       }
     } catch (fallbackError) {
-      console.error('Fallback copy also failed:', fallbackError.message);
       updateStatus('Copy to clipboard not supported in this browser');
     }
   }
@@ -615,7 +607,7 @@ function exportTranscript(format) {
     content = transcriptData.map(item =>
       `[${item.timestamp}] ${item.text}`
     ).join('\n');
-    filename = `deepgram-transcript-${timestamp}.txt`;
+    filename = `transcript-${timestamp}.txt`;
     mimeType = 'text/plain';
     break;
 
@@ -625,11 +617,11 @@ function exportTranscript(format) {
         exportedAt: new Date().toISOString(),
         totalEntries: transcriptData.length,
         recordingStartTime: recordingStartTime ? new Date(recordingStartTime).toISOString() : null,
-        source: 'Deepgram Real-time Transcription'
+        source: 'Real-time Audio Transcription'
       },
       transcripts: transcriptData
     }, null, 2);
-    filename = `deepgram-transcript-${timestamp}.json`;
+    filename = `transcript-${timestamp}.json`;
     mimeType = 'application/json';
     break;
 
@@ -639,7 +631,7 @@ function exportTranscript(format) {
       `"${item.timestamp}","${item.absoluteTime}","${item.text.replace(/"/g, '""')}","${item.confidence || ''}"`
     ).join('\n');
     content = csvHeader + csvRows;
-    filename = `deepgram-transcript-${timestamp}.csv`;
+    filename = `transcript-${timestamp}.csv`;
     mimeType = 'text/csv';
     break;
   }
@@ -670,6 +662,24 @@ function updateStatus(message) {
   }
 }
 
+// Update pause button icon based on state
+function updatePauseButtonIcon() {
+  if (!pauseButton) {
+    return;
+  }
+
+  const pauseIcon = pauseButton.querySelector('.btn-icon');
+  if (pauseIcon) {
+    if (isPaused) {
+      // Show play icon for resume
+      pauseIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+    } else {
+      // Show pause icon
+      pauseIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+    }
+  }
+}
+
 // Update UI based on current state
 function updateUI() {
   if (!startButton || !pauseButton || !stopButton || !clearButton || !copyButton || !exportButton) {
@@ -688,9 +698,14 @@ function updateUI() {
   copyButton.disabled = !hasTranscript;
   exportButton.disabled = !hasTranscript;
 
-  startButton.textContent = canStart ? 'Start Recording' : 'Not Ready';
-  pauseButton.textContent = isPaused ? 'Resume' : 'Pause';
-  stopButton.textContent = 'Stop Recording';
-  copyButton.textContent = hasTranscript ? `Copy (${transcriptData.length})` : 'Copy';
-  exportButton.textContent = hasTranscript ? `Export (${transcriptData.length})` : 'Export';
+  // Update button states (icons only, no text changes)
+  startButton.disabled = !canStart;
+  pauseButton.disabled = !canPause;
+  stopButton.disabled = !canStop;
+  clearButton.disabled = !hasTranscript;
+  copyButton.disabled = !hasTranscript;
+  exportButton.disabled = !hasTranscript;
+
+  // Update pause button icon based on state
+  updatePauseButtonIcon();
 }
