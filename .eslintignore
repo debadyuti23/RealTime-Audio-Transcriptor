@@ -1,0 +1,15 @@
+node_modules/
+dist/
+build/
+icons/
+*.min.js
+.env
+package-lock.json
+*.log
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.pdf
+*.md

@@ -1,11 +1,19 @@
 {
   "manifest_version": 3,
-  "name": "RealTime Audio Transcriptor",
+  "name": "Real-Time AudioTranscriptor",
   "version": "0.1.0",
-  "description": "Capture active tab audio using Gemini Live.",
+  "description": "Real-time audio transcription using Deepgram API.",
   "permissions": ["tabCapture", "activeTab", "sidePanel", "storage"],
   "host_permissions": ["*://*/*"],
-  "background": { "service_worker": "sw.js" },
+  "background": { "service_worker": "service-worker.js" },
   "side_panel": { "default_path": "sidepanel.html" },
-  "action": { "default_title": "Transcriber" }
+  "action": { 
+    "default_title": "Real-Time Audio Transcriptor"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
 }

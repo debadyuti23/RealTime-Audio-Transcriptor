@@ -1,14 +1,30 @@
 {
-  "name": "transcriber-gemini-live-ws",
+  "name": "real-time-audio-transcriptor",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "lint:check": "eslint . --max-warnings 0",
+    "prepare": "husky install",
+    "format": "eslint . --fix && echo 'Formatting complete!'"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0"
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "git add"
+    ]
   },
   "dependencies": {
-    "@google/genai": "^1.14.0",
-    "dotenv": "^16.4.5",
-    "ws": "^8.18.0"
+    "@deepgram/sdk": "^3.4.0",
+    "ws": "^8.18.0",
+    "dotenv": "^16.4.5"
   }
 }
